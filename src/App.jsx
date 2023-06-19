@@ -1,35 +1,25 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import ChildBox from "./components/boxes/childboxes";
+import GridBox from "./components/boxes/boxes";
+import "./App.css";
+import BluetoothComponent from "./components/bluetoothTest/bluetooth.jsx";
+
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+    <div className="dash-container justify-center min-h-screen">
+    <GridBox>
+        <ChildBox value={"10"} headline="Scan Devices" />
+        <ChildBox value={"10"} headline="Available Devices" />
+        <ChildBox value={"10"} headline="Sessions" />
+        <ChildBox value="0" headline="Injured Athletes" />
+        <ChildBox value="0" headline="Alerts" />
+      </GridBox>
+    <BluetoothComponent/>
+    </div>
+
     </>
-  )
+  );
 }
 
-export default App
+export default App;

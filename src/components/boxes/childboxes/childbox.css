@@ -1,0 +1,80 @@
+
+.child-box {
+  display: flex;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  flex-direction: column;
+  background-color: #0F182A;
+  border-radius: 8px;
+}
+
+.div1 .child-box:hover {
+  background-color: rgba(30, 151, 214, 0.2);
+}
+
+.div2 .child-box:hover {
+  background-color: rgba(30, 151, 214, 0.2);
+}
+
+.div3 .child-box:hover {
+  background-color: rgba(30, 151, 214, 0.2);
+}
+
+.div4 .child-box:hover {
+  background-color: rgba(30, 151, 214, 0.2);
+}
+
+.div5 .child-box:hover {
+  background-color: #FFCF74;
+}
+
+.alert-color:hover {
+  background-color: #FFCF74 !important;
+}
+
+.alert-value {
+  color: #FFCF74 !important;
+}
+
+.alert-color:hover .alert-value {
+  color: #FAFAFA !important;
+}
+
+.alert-color {
+  background-color: #161B23 !important;
+}
+
+@media (min-width: 768px) {
+  .value {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+
+  .headline {
+    font-size: 0.88rem !important;
+    line-height: 2rem !important;
+    padding-top: 1rem!important;
+    font-weight: 400;
+  }
+}
+
+.headline {
+  overflow: hidden;
+  white-space: nowrap;
+  font-weight: 600;
+  color: #ffffff;
+  padding-top: 0.25rem;
+  font-size: 0.5rem;
+  line-height: 1.5rem;
+}
+
+.value {
+  font-weight: 700;
+  color: #ffffff;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  font-size: 2.25rem;
+  line-height: 2.25rem;
+}

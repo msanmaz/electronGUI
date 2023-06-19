@@ -17,6 +17,7 @@ module.exports = {
     'react-refresh/only-export-components': 'warn',
     'react-hooks/rules-of-hooks': 'error', // Enforces React Hook rules.
     'react-hooks/exhaustive-deps': 'warn', // Checks for dependencies in useEffect and similar hooks.
+    'react/prop-types': 'off', // We don't need prop-types with TypeScript.
   },
   globals: { Atomics: 'readonly', SharedArrayBuffer: 'readonly' }, // Needed for Electron.
   overrides: [
