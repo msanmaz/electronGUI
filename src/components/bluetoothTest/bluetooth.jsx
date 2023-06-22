@@ -1,11 +1,22 @@
 import React, { useEffect, useState } from "react";
 import BleSearch from "./bleSearch";
+import useGetWordFromFourBytes from "../../hooks/useGetWordFromFourBytes";
+import useGetWordFromTwoBytes from "../../hooks/useGetWordFromTwoBytes";
+import useGetWordFromTwoBytes12 from "../../hooks/useGetWordFromTwoBytes12";
+import LineChartPlot from "../lineChart/lineChart";
 
 function BluetoothComponent() {
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [deviceInfo, setDeviceInfo] = useState(null);
+  const [packets, setPackets] = useState([]);
   const [rxCharacteristic, setRxCharacteristic] = useState(null);
   const [txCharacteristic, setTxCharacteristic] = useState(null);
+
+  const getWordFromFourBytes = useGetWordFromFourBytes();
+  const getWordFromTwoBytes = useGetWordFromTwoBytes();
+  const getWordFrom12Bytes = useGetWordFromTwoBytes12();
+
+  
 
   const handleBluetoothRequest = async () => {
     try {
@@ -30,6 +41,56 @@ function BluetoothComponent() {
       console.error(error);
     }
   };
+
+  const onPacketReceived = React.useCallback(
+    (packet) => {
+      let counter = getWordFromFourBytes(
+        packet[4],
+        packet[5],
+        packet[6],
+        packet[7],
+        true
+      );
+      // Split the packet into multiple packages of 56 bytes each
+      const packages = [];
+      for (let i = 8; i < packet.length; i += 56) {
+        packages.push(packet.slice(i, i + 56));
+      }
+      console.log(packages)
+      // Process each package
+      packages.forEach((packages, index) => {
+        let parsedPackage = {
+          counter: counter + index,
+          G_X: getWordFromTwoBytes(packages[0], packages[1], false) * 0.07,
+          G_Y: getWordFromTwoBytes(packages[2], packages[3], false) * 0.07,
+          G_Z: getWordFromTwoBytes(packages[4], packages[5], false) * 0.07,
+          A_X: getWordFromTwoBytes(packages[6], packages[7], false) * 0.488 / 1000,
+          A_Y: getWordFromTwoBytes(packages[8], packages[9], false) * 0.488 / 1000,
+          A_Z: getWordFromTwoBytes(packages[10], packages[11], false) * 0.488 / 1000,
+          M_X: getWordFromTwoBytes(packages[12], packages[13], false),
+          M_Y: getWordFromTwoBytes(packages[14], packages[15], false),
+          M_Z: getWordFromTwoBytes(packages[16], packages[17], false),
+          A_X_W: getWordFrom12Bytes(packages[18], packages[19], false) * -1 * 0.049,
+          A_Y_W: getWordFrom12Bytes(packages[20], packages[21], false) * -1 * 0.049,
+          A_Z_W: getWordFrom12Bytes(packages[22], packages[23], false) * 0.049,
+        };
+
+        for (let i = 1; i <= 16; i++) {
+          const index = 24 + (i - 1) * 2;
+          parsedPackage["c" + i] = getWordFromTwoBytes(
+            packages[index],
+            packages[index + 1],
+            true
+          );
+        }
+
+        console.log(`Chunk ${index + 1}:`, parsedPackage);
+        setPackets((oldPackets) => [...oldPackets, parsedPackage]);
+      });
+    },
+    [getWordFrom12Bytes, getWordFromFourBytes, setPackets, getWordFromTwoBytes]
+  );
+
 
   useEffect(() => {
     const connectToDevice = async () => {
@@ -100,6 +161,14 @@ function BluetoothComponent() {
     };
   }, [selectedDevice]);
 
+  function isPacketUnwanted(packet, unwantedPackets) {
+    return unwantedPackets.some(
+      (unwantedPacket) =>
+        packet.length === unwantedPacket.length &&
+        packet.every((v, i) => v === unwantedPacket[i])
+    );
+  }
+
   const handleStreamData = React.useCallback((event) => {
     let value = event.target.value;
     let responseBytes = [];
@@ -108,9 +177,17 @@ function BluetoothComponent() {
       responseBytes.push(value.getUint8(i));
     }
 
-    // Process the streaming data here
-    console.log(`Received stream data: ${responseBytes}`);
-  }, []);
+    const unwantedPacketStart = [115, 115, 115, 116, 114, 33];
+    const unwantedPacketStop = [115, 112, 115, 116, 114, 33];
+    const unwantedPackets = [unwantedPacketStart, unwantedPacketStop];
+    const isUnwanted = isPacketUnwanted(responseBytes, unwantedPackets);
+
+    if (!isUnwanted) {
+      // Process the streaming data here
+      onPacketReceived(responseBytes);
+      console.log(`Received package data: ${responseBytes}`);
+    }
+  }, [onPacketReceived]);
 
   const sendSSSTRCommand = async () => {
     const encoder = new TextEncoder();
@@ -122,15 +199,29 @@ function BluetoothComponent() {
     );
   };
 
-  const handleCancelBluetoothRequest = () => {
+  const handleCancelBluetoothRequest = React.useCallback(() => {
     if (selectedDevice) {
+      // console.log("Disconnected from GATT server");
       selectedDevice.gatt.disconnect();
-      console.log("Disconnected from GATT server");
       setSelectedDevice(null);
       setDeviceInfo(null);
     }
-  };
+  }, [selectedDevice]);
 
+  const sendSPSTRCommand = React.useCallback(async () => {
+    const encoder = new TextEncoder();
+    const spstr = encoder.encode("spstr");
+    const ssend = encoder.encode("ssend");
+    await rxCharacteristic.writeValue(spstr);
+    await rxCharacteristic.writeValue(ssend);
+    txCharacteristic.removeEventListener(
+      "characteristicvaluechanged",
+      handleStreamData
+    );
+    console.log("Stopped streaming");
+  }, [rxCharacteristic, txCharacteristic, handleStreamData]);
+
+  
   return (
     <div className="flex flex-col justify-center gap-[1rem]">
       <div className="flex-row gap-[1rem] text-center text-2xl font-extrabold flex justify-center">
@@ -151,10 +242,23 @@ function BluetoothComponent() {
                 <p className="text-xl py-[0.5rem] font-bold">
                   Battery Level: {deviceInfo}%
                 </p>
-                <div className="py-[1rem]">
-                <button className="text-xl font-bold" onClick={sendSSSTRCommand}>Start Streaming</button>
+                <div className="py-[0.5rem]">
+                  <button
+                    className="text-xl font-bold"
+                    onClick={sendSSSTRCommand}
+                  >
+                    Start Streaming
+                  </button>
+                  <button
+                    className="text-xl font-bold"
+                    onClick={sendSPSTRCommand}
+                  >
+                    Stop Streaming
+                  </button>
                 </div>
               </div>
+
+              <LineChartPlot data={packets} />
             </div>
           </>
         )}

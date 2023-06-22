@@ -2,6 +2,7 @@ import ChildBox from "./components/boxes/childboxes";
 import GridBox from "./components/boxes/boxes";
 import "./App.css";
 import BluetoothComponent from "./components/bluetoothTest/bluetooth.jsx";
+import UsbPortTest from "./components/usbPortTest/usbPortTest";
 
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
         <ChildBox value="0" headline="Alerts" />
       </GridBox>
     <BluetoothComponent/>
+    <UsbPortTest/>
     </div>
 
     </>

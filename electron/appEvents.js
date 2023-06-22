@@ -2,7 +2,8 @@ const { app } = require('electron');
 
 function handleAppEvents(win, createWindow, BrowserWindow) {
     app.on('window-all-closed', () => {
-        if (process.platform !== 'darwin') app.quit();
+        if (process.platform !== 'darwin'){
+            app.quit();}
     });
 
     app.on('second-instance', () => {
