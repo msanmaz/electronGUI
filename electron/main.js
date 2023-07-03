@@ -1,9 +1,15 @@
 const { app, BrowserWindow,session } = require('electron');
 const { join } = require('path');
 
+
+const {
+  default: installExtension,
+  REACT_DEVELOPER_TOOLS,
+} = require("electron-devtools-installer");
+
+
 const handleBluetoothEvents = require('./bluetoothEvents');
 const handleAppEvents = require('./appEvents');
-const handleSerialPortEvents = require('./serialPortEvents');
 
 
 let win = null;
@@ -33,7 +39,7 @@ async function createWindow() {
   win.webContents.session.on('select-usb-device', (event, details, callback) => {
     console.log('select-usb-device FIRED WITH', details.deviceList);
     if (details.deviceList.length > 0) {        
-      callback(details.deviceList[0].deviceId);
+      callback(details.deviceList[0].deviceId);      
     }
   })
 
@@ -52,12 +58,23 @@ async function createWindow() {
     return true;
   });
 
-  const grantedDevices = [];
 
   win.webContents.session.setDevicePermissionHandler((details) => {
     console.log(`In DevicePermissionHandlerfor ${details.deviceType} from ${details.origin}`, details.device);
+    win.webContents.send('get-usb-device-list', details);
     return true;
   });
+
+    // Errors are thrown if the dev tools are opened
+        // before the DOM is ready
+        win.webContents.once("dom-ready", async () => {
+          await installExtension([REACT_DEVELOPER_TOOLS])
+              .then((name) => console.log(`Added Extension: ${name}`))
+              .catch((err) => console.log("An error occurred: ", err))
+              .finally(() => {
+                  win.webContents.openDevTools();
+              });
+      });
 
   handleBluetoothEvents(win);
   // handleSerialPortEvents(win);
@@ -67,7 +84,7 @@ app.whenReady().then(() => {
   session.defaultSession.on('select-serial-port', (event, portList, webContents, callback) => {
     event.preventDefault();
     const selectedPortId = portList[0]?.portId;
-    console.log(portList)
+    console.log(portList,'list')
     callback(selectedPortId);
   });
   createWindow()

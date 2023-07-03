@@ -1,3 +1,4 @@
+import React from 'react'
 import Spinner from '../../common/spinner/Spinner'
 import './childBox.css'
 

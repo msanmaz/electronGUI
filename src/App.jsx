@@ -1,13 +1,16 @@
+import React from "react";
 import ChildBox from "./components/boxes/childboxes";
 import GridBox from "./components/boxes/boxes";
 import "./App.css";
-import BluetoothComponent from "./components/bluetoothTest/bluetooth.jsx";
 import UsbPortTest from "./components/usbPortTest/usbPortTest";
-
+// import UsbPortTest from "./components/usbPortTest/usbPortTest";
+import store from '../lib/store'
+import { Provider } from 'react-redux'
+import BluetoothComponentBlock from "./components/bluetoothTest/bluetooth.jsx";
 
 function App() {
   return (
-    <>
+    <Provider store={store}>
     <div className="dash-container justify-center min-h-screen">
     <GridBox>
         <ChildBox value={"10"} headline="Scan Devices" />
@@ -16,11 +19,12 @@ function App() {
         <ChildBox value="0" headline="Injured Athletes" />
         <ChildBox value="0" headline="Alerts" />
       </GridBox>
-    <BluetoothComponent/>
+    <BluetoothComponentBlock/>
     <UsbPortTest/>
     </div>
 
-    </>
+    </Provider>
+
   );
 }
 

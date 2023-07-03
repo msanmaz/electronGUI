@@ -1,10 +1,18 @@
 import React, { useEffect,useState } from "react";
 
-const BleSearch = () => {
+const BleSearch = ({firstDevice=null}) => {
   const [devices, setDevices] = useState([]);
+
 
   useEffect(() => {
     const handleUpdateDeviceList = (deviceList) => {
+      if (firstDevice && firstDevice.name) {
+        const tempDeviceList = deviceList.filter(
+          (device) => device.deviceName !== firstDevice.name
+        );
+        setDevices(tempDeviceList);
+        return
+      }
       setDevices(deviceList);
     };
 

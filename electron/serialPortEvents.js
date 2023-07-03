@@ -1,6 +1,10 @@
 const { ipcMain } = require('electron');
 const {SerialPort} = require('serialport');
 
+//add a function to handle serial port events
+
+
+
 async function handleSerialPortEvents(win) {
     try {
       const ports = await SerialPort.list();

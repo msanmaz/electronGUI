@@ -1,3 +1,4 @@
+import React from 'react';
 import './boxes.css';
 import { motion } from 'framer-motion';
 

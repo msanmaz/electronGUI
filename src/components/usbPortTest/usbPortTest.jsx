@@ -1,102 +1,75 @@
-// // import { useState } from "react";
-
-// // const UsbPortTest = () => {
-// //   const getPorts = async () => {
-// //     try {
-// //       const port = await navigator.serial.requestPort();
-// //       await port.open({ baudRate: 9600 });  // replace with your required baud rate
-// //      port.getSignals().then((info) =>{return info, console.log(info)})
-
-// //       const reader = port.readable.getReader();
-// //       const data = await reader.read();
-// //       console.log(data)
-// //       // Assuming the data received is in text format
-// //       const receivedData = new TextDecoder().decode(data.value);
-// //       console.log(receivedData)
-// //       // setDevices((prevDevices) => [...prevDevices, receivedData]);
-
-// //       await reader.cancel();
-// //       await port.close();
-// //     } catch (err) {
-// //       console.error('There was an error:', err);
-// //     }
-// //   };
-  
-// //   return (
-// //     <>      
-// //       <h2>Serial Ports</h2>
-// //       <button onClick={getPorts}>Request Serial Port</button>
-// //     </>
-// //   );
-// // };
-
-// // export default UsbPortTest;
-
-// import { useEffect, useState } from "react";
-
-// const UsbPortTest = () => {
-//   const [ports, setPorts] = useState([]);
-
-//   useEffect(() => {
-//     const handleUpdateSerialPorts = (event, ports) => {
-//       setPorts(ports);
-//     };
-
-//     window.electron.on('update-serial-ports', handleUpdateSerialPorts);
-
-//     // Clean up the event listener when the component unmounts
-//     return () => {
-//       window.electron.off('update-serial-ports', handleUpdateSerialPorts);
-//     };
-//   }, []);
-
-//   const refreshSerialPorts = () => {
-//     window.electron.send('refresh-serial-ports');
-//   };
-//   console.log(ports)
-//   return (
-//     <>      
-//       <h2>Serial Ports</h2>
-//       <button onClick={refreshSerialPorts}>Refresh Serial Ports</button>
-//       <ul>
-//         {ports.map((port, index) => (
-//           <li key={index}>{port.path}</li>
-//         ))}
-//       </ul>
-//     </>
-//   );
-// };
-
-// export default UsbPortTest;
-
-
-import {useState} from 'react';
+import React,{ useState } from "react";
 const UsbPortTest = () => {
   const [error, setError] = useState(null);
-  const requestDevice = () => {
-    if (!navigator.usb) {
-      console.error('WebUSB not supported');
+  const [devices, setDevices] = useState(null);
+
+  
+  React.useEffect(() => {
+    const handleUpdateDeviceList = (deviceList) => {
+      setDevices(deviceList);
+    };
+
+    window.electron.on("get-usb-device-list", handleUpdateDeviceList);
+
+    // Cleanup function to remove the event listener when the component unmounts
+    return () => {
+      window.electron.off("get-usb-device-list", handleUpdateDeviceList);
+    };
+  }, []);
+
+  const requestSerialPort = async () => {
+    if (!navigator.serial) {
+      console.error("Web Serial not supported");
       return;
     }
 
-    navigator.usb.requestDevice({ filters: [{vendorId:0x2544}] })
-      .then(device => {
-        console.log(device.productName);
-        console.log(device.manufacturerName);
-        return device.open() // Begin a session.
-      })
-      // .then((device)=> device.selectConfiguration(1))
-      // .then((device) => device.claimInterface(2))
-      .catch(error => {
-        setError(error.message)
-        console.error('There was an error:', error.message);
+    try {
+      const port = await navigator.usb.requestDevice({
+        filters: [{ usbVendorId: 0x05ac }],
       });
+      await port.open({ baudRate: 9600 });
+      console.log("Serial port opened:", port);
+      await port.selectConfiguration(1);
+      port.configuration.interfaces.forEach((interfacess) => {
+        interfacess.alternates.forEach((alternate) => {
+          alternate.endpoints.forEach((endpoint) => {
+            console.log("Endpoint Number:", endpoint.endpointNumber);
+            console.log("Direction:", endpoint.direction);
+          });
+        });
+      });
+      await port.claimInterface(0);
+      console.log("Serial port configured!");
+      const transfer = await port.transferOut(
+        2,
+        new Uint8Array(
+          new TextEncoder().encode("./ideviceinfo -q com.apple.mobile.battery")
+        )
+      );
+      console.log(transfer, "out");
+      port.transferIn(3,41).then((result) => {
+        if(result){
+          console.log(result, "in")
+        }
+      })
+      const response = await port.transferIn(1, 64); // Assuming endpoint 1 and 64 bytes of data
+      console.log(response);
+    } catch (error) {
+      setError(error.message);
+      console.error("There was an error:", error.message);
+    }
   };
+
+
 
   return (
     <div>
-      <button onClick={requestDevice}>Request USB Device</button>
-      {error&&<p className='text-xl font-bold text-red-500'>{error}</p>}
+      <button onClick={requestSerialPort}>Request USB Device</button>
+      {error && <p className="text-xl font-bold text-red-500">{error}</p>}
+        {
+          devices&&
+                <p>Name: {devices.device.productName}, Serial: {devices.device.serialNumber}</p>     
+        }
     </div>
   );
 };

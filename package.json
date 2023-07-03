@@ -12,12 +12,14 @@
     "electron:dev": "node lib/dev.mjs"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^1.9.5",
     "autoprefixer": "^10.4.14",
     "esm": "^3.2.25",
     "framer-motion": "^10.12.16",
     "postcss": "^8.4.24",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-redux": "^8.1.1",
     "recharts": "^2.7.1",
     "serialport": "^11.0.0",
     "tailwindcss": "^3.3.2"
@@ -27,6 +29,7 @@
     "@types/react-dom": "^18.0.11",
     "@vitejs/plugin-react": "^4.0.0",
     "electron": "^25.1.1",
+    "electron-devtools-installer": "^3.2.0",
     "eslint": "^8.38.0",
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-react-hooks": "^4.6.0",
