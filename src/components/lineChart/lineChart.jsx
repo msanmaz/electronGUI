@@ -6,11 +6,11 @@ import {
   XAxis,
   Line,
 } from "recharts";
-import React, { useMemo } from "react";
+import React from "react";
 
 
 function LineChartPlot(props){
-  const { data,zeroSession,left } = props;
+  const { data } = props;
 
   const dataToDisplay = data.slice(Math.max(data.length - 50, 0));
 

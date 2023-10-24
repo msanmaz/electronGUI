@@ -1,18 +1,16 @@
 const { app, BrowserWindow,session } = require('electron');
 const { join } = require('path');
 
-
-const {
-  default: installExtension,
-  REACT_DEVELOPER_TOOLS,
-} = require("electron-devtools-installer");
-
-
 const handleBluetoothEvents = require('./bluetoothEvents');
 const handleAppEvents = require('./appEvents');
 
 
 let win = null;
+
+if (process.platform === "linux"){
+  app.commandLine.appendSwitch("enable-experimental-web-platform-features", true);
+} 
+app.commandLine.appendSwitch("enable-web-bluetooth", true);
 
 
 async function createWindow() {
@@ -64,17 +62,6 @@ async function createWindow() {
     win.webContents.send('get-usb-device-list', details);
     return true;
   });
-
-    // Errors are thrown if the dev tools are opened
-        // before the DOM is ready
-        win.webContents.once("dom-ready", async () => {
-          await installExtension([REACT_DEVELOPER_TOOLS])
-              .then((name) => console.log(`Added Extension: ${name}`))
-              .catch((err) => console.log("An error occurred: ", err))
-              .finally(() => {
-                  win.webContents.openDevTools();
-              });
-      });
 
   handleBluetoothEvents(win);
   // handleSerialPortEvents(win);

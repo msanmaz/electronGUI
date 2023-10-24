@@ -1,7 +1,3 @@
-import React from "react";
-import { useDispatch } from "react-redux"
-import { setDeviceInfo,setDeviceInfo2 } from "../../../lib/deviceSlice";
-
  const BluetoothButt = ({ 
     sendCommand,
     setSelectedDevice, 
@@ -14,7 +10,6 @@ import { setDeviceInfo,setDeviceInfo2 } from "../../../lib/deviceSlice";
     handleStartStreamingWorker = () => {},
     handleStopStreamingWorker= () => {},
   }) => {
-    const dispatch = useDispatch()
     const handleBluetoothRequest = async (setSelectedDeviceFunc) => {
         try {
           const device = await navigator.bluetooth.requestDevice({
@@ -57,18 +52,7 @@ import { setDeviceInfo,setDeviceInfo2 } from "../../../lib/deviceSlice";
     return sendCommand('spstr', rxCharacteristic, txCharacteristic, handleStreamData)
   };
 
-    
-  const handleCancelBluetoothRequest = React.useCallback(() => {
-    if (selectedDevice) {
-       console.log("Disconnected from GATT server");
-      selectedDevice.gatt.disconnect();
-      setSelectedDevice(null);
-      dispatch(setDeviceInfo(null))
-      dispatch(setDeviceInfo2(null))
-    }
-  }, [selectedDevice]);
 
-  
 
     return (
       <div className=" flex-row gap-[1rem] text-center text-2xl font-extrabold flex justify-center">

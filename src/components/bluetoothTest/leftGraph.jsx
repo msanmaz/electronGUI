@@ -15,12 +15,12 @@ const LeftGraph = ({ isZeroSessionRef, setIsZeroSession }) => {
   const [deviceInfo, setDeviceInfo] = useState(null);
   const [localPackets, setLocalPackets] = useState([]);
   const [average, setAverage] = useState(null);
-  const [packets, setPackets] = React.useState([]);
+  const [packets, setPackets] = useState([]);
   const rxCharacteristicRef = React.useRef(null);
   const txCharacteristicRef = React.useRef(null);
   const rxCharacteristic = rxCharacteristicRef.current;
   const txCharacteristic = txCharacteristicRef.current;
-
+  console.log(localPackets,'zerosession')
   const workerPacketRef = React.useRef(null);
   const workerRef = React.useRef(null);
 
@@ -98,14 +98,15 @@ const LeftGraph = ({ isZeroSessionRef, setIsZeroSession }) => {
   }, []);
 
 
-const updatePackets = (newPackets) => {
-  requestAnimationFrame(() => {
-    setPackets(newPackets);
-  });
-};
+// const updatePackets = (newPackets) => {
+//   requestAnimationFrame(() => {
+//     setPackets(newPackets);
+//   });
+// };
 
 
   let batch = []
+  console.log(batch,'batch')
   React.useEffect(() => {
     const workerPacket = new Worker(
       new URL("../../workerSecond.js", import.meta.url)
@@ -117,7 +118,8 @@ const updatePackets = (newPackets) => {
       if(batch.length >= 20){
         setPackets((oldPackets) => {
           const newPackets = [...oldPackets, responseBytes];
-          return newPackets.slice(Math.max(newPackets.length - 500, 0));
+          console.log(newPackets,'newPackets')
+          return newPackets.slice(Math.max(newPackets.length - 200, 0));
         });
         batch = [];
       return;
